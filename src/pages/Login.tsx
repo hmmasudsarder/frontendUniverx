@@ -20,7 +20,7 @@ const Login = () => {
   const [login] = useLoginMutation();
 
   const onSubmit = async (data: FieldValues) => {
-    const toastID = toast("Loging IN....")
+    const toastID = toast("Loging IN....");
     try {
       const userInfo = {
         id: data.userId,
@@ -29,12 +29,11 @@ const Login = () => {
       const res = await login(userInfo).unwrap();
       console.log(res);
       const user = verifyToken(res.data.accessToken) as TUser;
-      console.log(user);
-      dispatch(setUser({ user: user, token: res.data.accessToken }));
-      navigate(`/${user.role}/dashboard`);
-      toast.success("login Successfully", {id: toastID})
+      dispatch(setUser({ user: { user }, token: res.data.accessToken }));
+      navigate(`/${user?.role}/dashboard`);
+      toast.success("login Successfully", { id: toastID });
     } catch (err) {
-      toast.error("SomeTing Went Worron", {id: toastID})
+      toast.error("SomeTing Went Worron", { id: toastID });
     }
   };
 
