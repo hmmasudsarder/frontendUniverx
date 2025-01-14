@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { BaseQueryApi, BaseQueryFn, createApi, DefinitionType, FetchArgs, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../features/store";
+import { logout, setUser } from "../features/auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
     baseUrl: 'http://localhost:5000/api/v1',
@@ -10,14 +11,43 @@ const baseQuery = fetchBaseQuery({
       if (token) {
         headers.set('authorization', `${token}`);
       }
-  
       return headers;
     },
   });
 
-  const baseQueryWithRefreshToken = async (args, api, extraOption)=>{
-    const result = await baseQuery(args, api, extraOption)
-    console.log(result)
+  const baseQueryWithRefreshToken: BaseQueryFn<
+  FetchArgs,
+  BaseQueryApi,
+  DefinitionType
+> = async (args, api, extraOptions): Promise<any>=>{
+    let result = await baseQuery(args, api, extraOptions)
+    if (result?.error?.status === 401) {
+      //* Send Refresh
+      console.log('Sending refresh token');
+  
+      const res = await fetch('http://localhost:5000/api/v1/auth/refresh-token', {
+        method: 'POST',
+        credentials: 'include',
+      });
+  
+      const data = await res.json();
+      if (data?.data?.accessToken) {
+        const user = (api.getState() as RootState).auth.user;
+  
+        api.dispatch(
+          setUser({
+            user,
+            token: data.data.accessToken,
+          })
+        );
+  
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        api.dispatch(logout());
+      }
+    }
+  
+    return result;
   }
 
 export const baseApi = createApi({
