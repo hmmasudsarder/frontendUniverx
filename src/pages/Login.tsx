@@ -1,5 +1,5 @@
 import { Button, Row } from "antd";
-import { FieldValues, useForm } from "react-hook-form";
+import { FieldValues} from "react-hook-form";
 import { useLoginMutation } from "../redux/features/auth/authApi";
 import { setUser, TUser } from "../redux/features/auth/authSlice";
 import { useAppDispatch } from "../redux/features/hook";
@@ -41,6 +41,7 @@ const Login = () => {
       toast.success("login Successfully", { id: toastID });
     } catch (err) {
       toast.error("SomeTing Went Worron", { id: toastID });
+      console.log(err)
     }
   };
 
