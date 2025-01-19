@@ -5,47 +5,87 @@ import { Controller, FieldValues, SubmitHandler } from "react-hook-form";
 import PHSelect from "../../../components/form/PHSelect";
 import { bloodGroupOptions, genderOptions } from "../../../constants/global";
 import PHDatePicker from "../../../components/form/PHDatePicker";
-import { semesterOptions } from "../../../constants/semester";
+import {
+  useGetAcademicDepartmentsQuery,
+  useGetAllSemestersQuery,
+} from "../../../redux/features/admin/academicManagement.api";
+import { useAddStudentMutation } from "../../../redux/features/admin/userManagement.api";
 
 const studentDefaultValues = {
   name: {
-    firstName: 'I am ',
-    middleName: 'Student',
-    lastName: 'Number 1',
+    firstName: "I am ",
+    middleName: "Student",
+    lastName: "Number 1",
   },
-  gender: 'male',
+  gender: "male",
 
-  bloogGroup: 'A+',
+  bloogGroup: "A+",
 
-  contactNo: '1235678',
-  emergencyContactNo: '987-654-3210',
-  presentAddress: '123 Main St, Cityville',
-  permanentAddress: '456 Oak St, Townsville',
+  contactNo: "1235678",
+  emergencyContactNo: "987-654-3210",
+  presentAddress: "123 Main St, Cityville",
+  permanentAddress: "456 Oak St, Townsville",
 
   guardian: {
-    fatherName: 'James Doe',
-    fatherOccupation: 'Engineer',
-    fatherContactNo: '111-222-3333',
-    motherName: 'Mary Doe',
-    motherOccupation: 'Teacher',
-    motherContactNo: '444-555-6666',
+    fatherName: "James Doe",
+    fatherOccupation: "Engineer",
+    fatherContactNo: "111-222-3333",
+    motherName: "Mary Doe",
+    motherOccupation: "Teacher",
+    motherContactNo: "444-555-6666",
   },
 
   localGuardian: {
-    name: 'Alice Johnson',
-    occupation: 'Doctor',
-    contactNo: '777-888-9999',
-    address: '789 Pine St, Villageton',
+    name: "Alice Johnson",
+    occupation: "Doctor",
+    contactNo: "777-888-9999",
+    address: "789 Pine St, Villageton",
   },
 
-  admissionSemester: '65bb60ebf71fdd1add63b1c0',
-  academicDepartment: '65b4acae3dc8d4f3ad83e416',
+  admissionSemester: "65bb60ebf71fdd1add63b1c0",
+  academicDepartment: "678caf12c08f12bd831159bf",
 };
 
 const CreateStudent = () => {
+  const [addStudent] = useAddStudentMutation();
+
+  const { data: sData, isLoading: sIsLoading } =
+    useGetAllSemestersQuery(undefined);
+
+  const { data: dData, isLoading: dIsLoading } =
+    useGetAcademicDepartmentsQuery(undefined);
+
+  const semesterOptions = sData?.data?.map((item) => ({
+    value: item._id,
+    label: `${item.name} ${item.year}`,
+  }));
+
+  const departmentOptions = dData?.data?.map((item) => ({
+    value: item._id,
+    label: item.name,
+  }));
+
+  // const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  //   console.log(data);
+  // };
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
-    console.log(data);
+    const studentData = {
+      password: 'student123',
+      student: data,
+    };
+
+    const formData = new FormData();
+
+    formData.append('data', JSON.stringify(studentData));
+    formData.append('file', data.image);
+
+    addStudent(formData);
+
+    //! This is for development
+    //! Just for checking
+    console.log(Object.fromEntries(formData));
   };
+
   return (
     <Row justify="center">
       <Col span={24}>
@@ -62,13 +102,19 @@ const CreateStudent = () => {
               <PHInput type="text" name="name.lastName" label="Last Name" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHSelect options={genderOptions} name="gender" label="Gender" />
+              <PHSelect
+                disabled={dIsLoading}
+                options={genderOptions}
+                name="gender"
+                label="Gender"
+              />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
               <PHDatePicker name="dateOfBirth" label="Date of birth" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
               <PHSelect
+                disabled={dIsLoading}
                 options={bloodGroupOptions}
                 name="bloogGroup"
                 label="Blood group"
@@ -197,18 +243,18 @@ const CreateStudent = () => {
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
               <PHSelect
                 options={semesterOptions}
-                // disabled={sIsLoading}
+                disabled={sIsLoading}
                 name="admissionSemester"
                 label="Admission Semester"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              {/* <PHSelect
-                // options={departmentOptions}
-                // disabled={dIsLoading}
+              <PHSelect
+                options={departmentOptions}
+                disabled={dIsLoading}
                 name="academicDepartment"
                 label="Admission Department"
-              /> */}
+              />
             </Col>
           </Row>
 
